@@ -89,7 +89,7 @@ request head.
 ## Review limits
 
 - Only `pull_request` events are supported. Fork workflows normally have no secrets
-  and a read-only token; the example skips them.
+  and a read-only token, so the example cannot review fork pull requests.
 - Reviews use the diff between the event's base and head commits and are attached
   to that head commit.
 - Pi runs without tools, extensions, skills, project configuration, or session

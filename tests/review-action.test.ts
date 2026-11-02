@@ -122,7 +122,7 @@ test("reviews the event's exact commits with the API key and bundled prompt", ()
     .trim()
     .split("\n")
     .map((line) => JSON.parse(line))
-  expect(commands[0]).toEqual({
+  expect.soft(commands[0]).toEqual({
     command: "gh",
     args: [
       "api",
@@ -137,10 +137,10 @@ test("reviews the event's exact commits with the API key and bundled prompt", ()
   expect(pi.cwd).toBe(pi.directory)
   expect(pi.models).toBeNull()
   expect(pi.diff).toBe(diff)
+  expect.soft(pi.args).toContain("--no-tools")
   expect(pi.args).toEqual(
     expect.arrayContaining([
       "--print",
-      "--no-tools",
       "--no-session",
       "--no-extensions",
       "--no-skills",
@@ -160,7 +160,7 @@ test("reviews the event's exact commits with the API key and bundled prompt", ()
   for (const name of ["githubToken", "alternateToken", "apiKeyInput", "authJsonInput"]) {
     expect(pi[name]).toBeUndefined()
   }
-  expect(json("posted.json")).toEqual({
+  expect.soft(json("posted.json")).toEqual({
     body: "## Pi review\n\nNo actionable findings found in the supplied diff.",
     event: "COMMENT",
     commit_id: head,

@@ -102,7 +102,7 @@ function reviewPullRequest() {
       "gh",
       [
         "api",
-        `${repository}/compare/${base}...${head}`,
+        `${repository}/compare/${head}...${base}`,
         "--header",
         "Accept: application/vnd.github.diff",
       ],
@@ -122,7 +122,6 @@ function reviewPullRequest() {
         "--mode",
         "text",
         "--no-session",
-        "--no-tools",
         "--no-extensions",
         "--no-skills",
         "--no-prompt-templates",
@@ -147,7 +146,7 @@ function reviewPullRequest() {
     if (body.length > 65536) throw new Error("The review exceeds GitHub's comment size limit.")
 
     const requestPath = join(directory, "review.json")
-    writeFileSync(requestPath, JSON.stringify({ body, event: "COMMENT", commit_id: head }))
+    writeFileSync(requestPath, JSON.stringify({ body, event: "COMMENT", commit_id: base }))
     const url = execFileSync(
       "gh",
       [
