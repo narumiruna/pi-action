@@ -97,7 +97,6 @@ export function withPi(defaultPrompt, task) {
             "--mode",
             "text",
             "--no-session",
-            "--no-tools",
             "--no-extensions",
             "--no-skills",
             "--no-prompt-templates",

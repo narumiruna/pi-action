@@ -115,7 +115,6 @@ export function withPi<Result>(
           "--mode",
           "text",
           "--no-session",
-          "--no-tools",
           "--no-extensions",
           "--no-skills",
           "--no-prompt-templates",

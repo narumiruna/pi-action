@@ -81,7 +81,7 @@ function reviewPullRequest() {
       "gh",
       [
         "api",
-        `${repository}/compare/${base}...${head}`,
+        `${repository}/compare/${head}...${base}`,
         "--header",
         "Accept: application/vnd.github.diff",
       ],
@@ -171,7 +171,7 @@ function reviewPullRequest() {
       const posted = request("POST", `${repository}/pulls/${number}/reviews`, {
         body: `Inline findings for [\`${head.slice(0, 7)}\`](${pullRequestUrl}/commits/${head}). See the [Pi review summary](${summary.html_url}).`,
         event: "COMMENT",
-        commit_id: head,
+        commit_id: base,
         comments,
       })
       console.log(`Review posted: ${posted.html_url}`)
