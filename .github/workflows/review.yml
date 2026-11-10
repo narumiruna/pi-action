@@ -24,6 +24,7 @@ jobs:
     concurrency:
       group: pi-oauth-auth-json
       cancel-in-progress: false
+      queue: max
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

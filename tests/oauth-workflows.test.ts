@@ -122,6 +122,12 @@ for (const action of ["review", "triage"]) {
       expect(workflow).not.toMatch(/auth-secret:|auth-environment:|auth-token:/)
     })
 
+    test("retains pending jobs in the shared OAuth concurrency group", () => {
+      expect(workflow).toContain(
+        "    concurrency:\n      group: pi-oauth-auth-json\n      cancel-in-progress: false\n      queue: max\n",
+      )
+    })
+
     test("selects the OpenAI subscription OAuth provider in the repository workflow", () => {
       expect(workflow).toMatch(/^\s+provider: openai$/m)
       expect(workflow).not.toContain("provider: openai-codex")
