@@ -256,6 +256,13 @@ Before resolving the thread, the action posts a reply with the reviewed commit
 and a short explanation in simple technical English. If the reply fails, the
 thread stays open.
 
+If GitHub rejects the resolution with `Resource not accessible by integration`,
+the workflow token is not allowed to resolve review threads. For example, a
+fork pull request can receive a read-only token. The action logs a warning,
+keeps the posted explanation, leaves the thread open, and does not fail the
+job, because a rerun cannot fix a permission problem. Other resolution failures
+still fail the job, so a rerun can retry them.
+
 The action leaves a thread open when the evidence is incomplete. An outdated
 comment, a finding absent from the new review, or a reply that says "Fixed" is not
 proof of a fix. Findings first posted at the current head are not rechecked.

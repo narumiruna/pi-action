@@ -130,6 +130,16 @@ export function listFindingThreads(
   return threads
 }
 
+const permissionDenied = "Resource not accessible by integration"
+
+/**
+ * Whether resolving a thread failed because the workflow token cannot resolve review threads, such as a
+ * read-only token on a fork pull request. Rerunning cannot fix this, unlike transient failures.
+ */
+export function isResolutionPermissionError(error: unknown) {
+  return error instanceof Error && error.message.includes(permissionDenied)
+}
+
 export function resolveFindingThread(api: GitHubApi, id: string) {
   const data = graphql<{
     resolveReviewThread: { thread: { id: string; isResolved: boolean } } | null

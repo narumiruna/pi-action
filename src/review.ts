@@ -3,7 +3,11 @@ import { readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { escapeCommand, withPi } from "./pi.js"
 import { buildReview, summaryMarker } from "./review-output.js"
-import { listFindingThreads, resolveFindingThread } from "./review-threads.js"
+import {
+  isResolutionPermissionError,
+  listFindingThreads,
+  resolveFindingThread,
+} from "./review-threads.js"
 
 type GitHubComment = {
   id: number
@@ -194,7 +198,16 @@ function reviewPullRequest() {
         })
       }
       assertHead()
-      resolveFindingThread(api, thread.id)
+      try {
+        resolveFindingThread(api, thread.id)
+      } catch (error) {
+        if (!isResolutionPermissionError(error)) throw error
+        // The fix explanation is already posted; only the thread state could not change.
+        console.log(
+          `::warning::${escapeCommand(`The workflow token cannot resolve review threads, so ${pullRequestUrl}#discussion_r${thread.comment_id} stays open. The fix explanation was posted.`)}`,
+        )
+        continue
+      }
       console.log(`Thread resolved: ${pullRequestUrl}#discussion_r${thread.comment_id}`)
     }
   })

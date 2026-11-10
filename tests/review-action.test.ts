@@ -82,6 +82,10 @@ if (command === "gh") {
     const query = args.find(value => value.startsWith("query="));
     if (query.includes("resolveReviewThread")) {
       fail("resolve");
+      if (env.MOCK_RESOLVE_FORBIDDEN) {
+        console.error("gh: Resource not accessible by integration");
+        process.exit(1);
+      }
       if (env.MOCK_GRAPHQL_ERRORS) {
         console.log(JSON.stringify({ errors: [{ message: "Resolution denied." }] }));
       } else {
@@ -930,6 +934,35 @@ test.each(["list-inline", "reply", "resolve"])(
     expect(resolutionCalls(root)).toHaveLength(stage === "resolve" ? 1 : 0)
   },
 )
+
+test("warns and succeeds when the workflow token cannot resolve review threads", () => {
+  const second = {
+    ...previousThread,
+    id: "PRRT_2",
+    comments: { nodes: [{ ...previousThread.comments.nodes[0], fullDatabaseId: "42" }] },
+  }
+  const { result, root } = runAction({
+    MOCK_THREADS: JSON.stringify([previousThread, second]),
+    MOCK_REVIEW: JSON.stringify({
+      ...noFindings,
+      resolved_threads: [
+        { id: previousThread.id, reason },
+        { id: second.id, reason },
+      ],
+    }),
+    MOCK_RESOLVE_FORBIDDEN: "1",
+  })
+  expect(result.status, result.stderr).toBe(0)
+  expect(existsSync(join(root, "summary.json"))).toBe(true)
+  expect(jsonLines(root, "replies.jsonl")).toHaveLength(2)
+  expect(existsSync(join(root, "resolved.jsonl"))).toBe(false)
+  expect(resolutionCalls(root)).toHaveLength(2)
+  expect(result.stdout).toContain(
+    "::warning::The workflow token cannot resolve review threads, so https://github.com/owner/repo/pull/42#discussion_r41 stays open.",
+  )
+  expect(result.stdout).toContain("pull/42#discussion_r42 stays open.")
+  expect(result.stdout).not.toContain("Thread resolved:")
+})
 
 test("reports GraphQL resolution errors even when GitHub CLI exits successfully", () => {
   const { result, root } = runAction({
