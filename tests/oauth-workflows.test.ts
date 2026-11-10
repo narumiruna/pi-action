@@ -19,11 +19,14 @@ function expectProtectedJob(example: string, action: string): void {
   expect(example).toContain(
     "    concurrency:\n      group: pi-oauth-auth-json\n      cancel-in-progress: false\n",
   )
-  expect(example).not.toMatch(/^concurrency:|cancel-in-progress: true|^\s+env:/m)
+  expect(example).not.toMatch(/^concurrency:|cancel-in-progress: true|^ {4}env:/m)
   expect(example).not.toMatch(/uses:\s+actions\/checkout@|github\.event\.pull_request\.head/)
-  expect(example).not.toMatch(
-    /secrets: write|environments: write|write-all|GH_TOKEN:|GITHUB_TOKEN:/i,
-  )
+  expect(example).not.toMatch(/secrets: write|environments: write|write-all/i)
+  for (const step of example.split(/^ {6}- name:/m)) {
+    if (!step.startsWith(" Check queued event\n")) {
+      expect(step).not.toMatch(/GH_TOKEN:|GITHUB_TOKEN:/i)
+    }
+  }
   expect(example).toContain(action === "review" ? "  pull-requests: write" : "  issues: write")
   if (action === "review") {
     expect(example).toContain("  pull_request_target:")
@@ -56,7 +59,7 @@ function expectStandaloneSteps(
   // The documented defaults must select the protected job's environment and secret.
   expect(consumer).not.toMatch(/\n\s+(environment|secret-name):/)
   expect(example.match(/secrets\.PAT_TOKEN/g)).toHaveLength(1)
-  expect(example).not.toMatch(/continue-on-error:|\.outputs\.|auth-token:/)
+  expect(example).not.toMatch(/continue-on-error:|steps\.(review|triage)\.outputs\.|auth-token:/)
 }
 
 for (const action of ["review", "triage"]) {

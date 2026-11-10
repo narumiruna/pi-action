@@ -28,8 +28,29 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Check queued event
+        id: current
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          number="$(jq -er '.number' "$GITHUB_EVENT_PATH")"
+          expected="$(jq -er '.pull_request.head.sha' "$GITHUB_EVENT_PATH")"
+          actual="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$number" | jq -er '.head.sha')"
+          if [[ "$actual" == "$expected" ]]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "current=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping a superseded pull request head."
+          fi
+
       - name: Review pull request
         id: review
+        if: steps.current.outputs.current == 'true'
         uses: narumiruna/pi-actions/review@10517c9297a5135606b2869f8d3781bfa7ea674d
         with:
           pull-request: ${{ inputs.pull-request }}
